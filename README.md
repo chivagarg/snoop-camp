@@ -1,3 +1,4 @@
+# See ```https://github.com/chivagarg/snoop-camp/blob/main/campground_ids.py``` for list of campgrounds being snooped
 # Instructions to update lambda function from local
 # https://docs.aws.amazon.com/lambda/latest/dg/python-package.html
 # To install a new dependency ```pip install --target ./package requests```
