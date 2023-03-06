@@ -62,6 +62,11 @@ class EmailClient:
                     day + relativedelta(days=2))
                 body_html += "<ul>"
                 campsite_list = available_days_to_campsite_sorted_by_day.get(day)
+
+                # Limit campsites to 5 per weekend for better display purposes
+                if len(campsite_list) > 5:
+                    campsite_list = campsite_list[0:5]
+
                 for campsite_id in campsite_list:
                     body_html += "<li>" + cls.get_reservation_link(campsite_id) + "</li>"
                 body_html += "</ul>"
