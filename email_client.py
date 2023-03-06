@@ -1,6 +1,9 @@
 import boto3
 from botocore.exceptions import ClientError
 from recreation_gov_client import RecreationGovClient
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from date_time_utils import to_human_readable_dt_format
 
 from campground_ids import CAMPSITE_ID_TO_PARK_DISPLAY_NAME
 
@@ -26,22 +29,46 @@ class EmailClient:
 
     @classmethod
     def get_reservation_link(cls, campsite_id):
-        return "<a href='" + RecreationGovClient.CAMPSITE_RESERVATION_URL.format(campsite_id=campsite_id) + "'> Reserve</a>"
+        return "<a href='" + RecreationGovClient.CAMPSITE_RESERVATION_URL.format(campsite_id=campsite_id) + "'>" + campsite_id + "</a>"
+
+    @classmethod
+    def build_headline(cls):
+        subject = "<html><body><h1>Do you smell the pine cones yet?</h1>" \
+                  "<p>Here are some available campsites. Book now!</p>"
+        return subject
 
     @classmethod
     def build_html_body(cls, availability):
-        body_html = "<html><body><h1>Do you smell the pine cones yet?</h1>" \
-                    "<p>Here are some available campsites. Each bullet point represents a particular campsite within a" \
-                    " park and lists contiguous 2 days (e.g. Friday & Saturday) that the campsite is free. Book now!</p>"
+        body_html = cls.build_headline()
         for park_id in availability:
             body_html += "<h2>" + CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(park_id) + "</h2>"
-            campsite_id_to_available_day = availability.get(park_id)
+            # let's build a map of available_day -> [ campsite_ids ]
+            available_days_to_campsite = {}
+            campsite_id_to_available_days = availability.get(park_id)
+
+            for campsite_id in campsite_id_to_available_days:
+                for day in campsite_id_to_available_days.get(campsite_id):
+                    available_days_to_campsite.setdefault(day, []).append(campsite_id)
+
+            for day in available_days_to_campsite:
+                available_days_to_campsite.get(day).sort()
+
+            available_days_to_campsite_sorted_by_day = dict(sorted(available_days_to_campsite.items()))
+
             body_html += "<ul>"
-            for available_campsite_id in campsite_id_to_available_day:
-                available_days = campsite_id_to_available_day.get(available_campsite_id)
-                available_days_as_str = ','.join(available_days)
-                body_html += "<li>" + available_days_as_str + cls.get_reservation_link(available_campsite_id) + "</li>"
+
+            for day in available_days_to_campsite_sorted_by_day:
+                body_html += "<li>" + to_human_readable_dt_format(day) + " - " + to_human_readable_dt_format(
+                    day + relativedelta(days=2))
+                body_html += "<ul>"
+                campsite_list = available_days_to_campsite_sorted_by_day.get(day)
+                for campsite_id in campsite_list:
+                    body_html += "<li>" + cls.get_reservation_link(campsite_id) + "</li>"
+                body_html += "</ul>"
+                body_html += "</li>"
+
             body_html += "</ul>"
+
         body_html += "</body></html>"
         return body_html
 
@@ -49,7 +76,7 @@ class EmailClient:
     def send_email(cls, weekend_availability, contiguous_availability):
         if weekend_availability:
             print("Got weekend availability {}", weekend_availability)
-            subject = "Snoop camp smells some available campsites (weekend)"
+            subject = "Snoop camp smells some available campsites (weekends)"
             body_html = cls.build_html_body(weekend_availability)
         elif contiguous_availability:
             print("Got contiguous availability {}", contiguous_availability)
