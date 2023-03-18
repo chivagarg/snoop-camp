@@ -86,7 +86,7 @@ def lambda_handler(event, context):
             'body': json.dumps('Email not sent - no weekends available!')
         }
     else:
-        EmailClient(is_test_mode).send_email(weekend_availability, contiguous_availability, is_test_mode)
+        EmailClient(is_test_mode).send_email(weekend_availability, contiguous_availability)
         return {
             'statusCode': 200,
             'body': json.dumps('Email sent with available dates!')
