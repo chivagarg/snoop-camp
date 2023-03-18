@@ -6,6 +6,7 @@ from email_client import EmailClient
 
 from dateutil.relativedelta import relativedelta
 from campground_ids import CAMPGROUND_IDS
+from test_campgrounds_ids import TEST_CAMPGROUND_IDS
 from date_time_utils import get_today
 
 def get_months_to_query(additional_months_to_query_for = 7):
@@ -66,8 +67,14 @@ def fetch_filtered_availabilities_for_campgrounds(campgrounds, months):
 
 
 def lambda_handler(event, context):
-    months = get_months_to_query()
-    camground_ids_to_fetch = [CAMPGROUND_IDS.get(c) for c in CAMPGROUND_IDS.keys()]
+    is_test_mode = False
+    if event and event.get('is_test_mode') == 'True':
+        print("This is test mode!")
+        is_test_mode = True
+
+    months = get_months_to_query(2 if is_test_mode else 7)
+
+    camground_ids_to_fetch = [TEST_CAMPGROUND_IDS.get(c) for c in TEST_CAMPGROUND_IDS.keys()] if is_test_mode else [CAMPGROUND_IDS.get(c) for c in CAMPGROUND_IDS.keys()]
     
     weekend_availability, contiguous_availability = fetch_filtered_availabilities_for_campgrounds(camground_ids_to_fetch, months)
     print("!!!This is the availability we got!!!")
@@ -79,7 +86,7 @@ def lambda_handler(event, context):
             'body': json.dumps('Email not sent - no weekends available!')
         }
     else:
-        EmailClient.send_email(weekend_availability, contiguous_availability)
+        EmailClient(is_test_mode).send_email(weekend_availability, contiguous_availability, is_test_mode)
         return {
             'statusCode': 200,
             'body': json.dumps('Email sent with available dates!')

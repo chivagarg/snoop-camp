@@ -1,14 +1,18 @@
 import boto3
 from botocore.exceptions import ClientError
 from recreation_gov_client import RecreationGovClient
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from date_time_utils import to_human_readable_dt_format
 
 from campground_ids import CAMPSITE_ID_TO_PARK_DISPLAY_NAME
+from test_campgrounds_ids import TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME
 
 
 class EmailClient:
+
+    def __init__(cls, is_test_mode):
+        cls.is_test_mode = is_test_mode
+
     # Replace sender@example.com with your "From" address.
     # This address must be verified with Amazon SES.
     SENDER = "snoop-campers@googlegroups.com"
@@ -37,11 +41,13 @@ class EmailClient:
                   "<p>Here are some available campsites. Book now!</p>"
         return subject
 
-    @classmethod
     def build_html_body(cls, availability):
         body_html = cls.build_headline()
         for park_id in availability:
-            body_html += "<h2>" + CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(park_id) + "</h2>"
+            if cls.is_test_mode:
+                body_html += "<h2>" + TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(park_id) + "</h2>"
+            else:
+                body_html += "<h2>" + CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(park_id) + "</h2>"
             # let's build a map of available_day -> [ campsite_ids ]
             available_days_to_campsite = {}
             campsite_id_to_available_days = availability.get(park_id)
@@ -77,15 +83,15 @@ class EmailClient:
         body_html += "</body></html>"
         return body_html
 
-    @classmethod
     def send_email(cls, weekend_availability, contiguous_availability):
+        subject = "[TEST]" if cls.is_test_mode else ""
         if weekend_availability:
             print("Got weekend availability {}", weekend_availability)
-            subject = "Snoop camp smells some available campsites (weekends)"
+            subject += "Snoop camp smells some available campsites (weekends)"
             body_html = cls.build_html_body(weekend_availability)
         elif contiguous_availability:
             print("Got contiguous availability {}", contiguous_availability)
-            subject = "Snoop camp smells some available campsites (non weekend)"
+            subject += "Snoop camp smells some available campsites (non weekend)"
             # The HTML body of the email.
             body_html = cls.build_html_body(contiguous_availability)
         else:
@@ -104,7 +110,7 @@ class EmailClient:
             response = client.send_email(
                 Destination={
                     'ToAddresses': [
-                        cls.RECIPIENT,
+                        "shgar.gir@gmail.com" if cls.is_test_mode else cls.RECIPIENT,
                     ],
                 },
                 Message={
@@ -123,7 +129,7 @@ class EmailClient:
                         'Data': subject,
                     },
                 },
-                Source=cls.SENDER,
+                Source="shgar.gir@gmail.com" if cls.is_test_mode else cls.SENDER
                 # If you are not using a configuration set, comment or delete the
                 # following line
                 # ConfigurationSetName=CONFIGURATION_SET,

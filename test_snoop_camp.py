@@ -56,6 +56,15 @@ class TestLambdaHandler:
             'body': json.dumps('Email sent with available dates!')
         }
 
+    def test_lambda_handler_test_mode(self, mocker):
+        RecreationGovClient.get_campground_availability_for_month_range = MagicMock(return_value={'2591': ['2023-06-01T00:00:00Z', '2023-06-09T00:00:00Z', '2023-06-10T00:00:00Z', '2023-06-07T00:00:00Z']})
+        mocker.patch('lambda_function.get_months_to_query', return_value=[datetime(2023, 6, 1, 0, 0)])
+        mocker.patch('email_client.EmailClient.send_email')
+        response = lambda_handler({"is_test_mode":"True"}, MagicMock())
+        assert response == {
+            'statusCode': 200,
+            'body': json.dumps('Email sent with available dates!')
+        }
 
     def test_lambda_handler_available_weekends_single_campground_multiple_month(self, mocker):
         RecreationGovClient.get_campground_availability_for_month_range = MagicMock(return_value={'2591': ['2023-06-01T00:00:00Z', '2023-06-09T00:00:00Z', '2023-06-10T00:00:00Z', '2023-06-07T00:00:00Z', '2023-07-21T00:00:00Z', '2023-07-22T00:00:00Z', '2023-07-28T00:00:00Z', '2023-07-07T00:00:00Z']})
@@ -175,8 +184,7 @@ class TestEmailClient:
                              "</li>" \
                          "</ul>" \
                          "</body></html>"
-
-        assert EmailClient.build_html_body(availability) == expected_html
+        assert EmailClient(is_test_mode=False).build_html_body(availability) == expected_html
 
 
 
