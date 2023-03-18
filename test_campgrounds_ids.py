@@ -1,8 +1,6 @@
 TEST_CAMPGROUND_IDS = {
-    # Olympic national park area
-    'Olympic area - Hoh Rainforest': '247592',
-    # Mt Rainier area (within 2.5 hours of seattle)
-    'Rainier area - Ohanapecosh': '232465',
+    'Olympic area - Sol Duc': '251906',
+    'Baker area - Turlo': '232118',
 
 }
 
