@@ -84,7 +84,7 @@ class EmailClient:
         return body_html
 
     def send_email(cls, weekend_availability, contiguous_availability):
-        subject = "[TEST]" if cls.is_test_mode else ""
+        subject = "[TEST] " if cls.is_test_mode else ""
         if weekend_availability:
             print("Got weekend availability {}", weekend_availability)
             subject += "Snoop camp smells some available campsites (weekends)"
