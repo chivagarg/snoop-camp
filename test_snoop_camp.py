@@ -127,65 +127,58 @@ class TestLambdaHandler:
 
 
 class TestEmailClient:
-    def test_build_html_body_multiple_camps(self):
-        availability = {CAMPGROUND_IDS.get(OHANAPECOSH_FRIENDLY_NAME): {'2591': [datetime(2023, 6, 9, 0, 0), datetime(2023, 7, 21, 0, 0)],
-                                            '2592': [datetime(2023, 7, 7, 0, 0), datetime(2023, 8, 25, 0, 0)]},
-                        CAMPGROUND_IDS.get(COUGAR_ROCK_FRIENDLY_NAME): {'6611': [datetime(2023, 6, 9, 0, 0), datetime(2023, 7, 21, 0, 0), datetime(2023, 8, 31, 0, 0)],
-                                                            '8877': [datetime(2023, 7, 28, 0, 0), datetime(2023, 8, 31, 0, 0)]}
-                        }
+    def test_build_html_body_chronological_multiple_camps(self):
+        availability = {
+            CAMPGROUND_IDS.get(OHANAPECOSH_FRIENDLY_NAME): {'2591': [datetime(2023, 6, 9, 0, 0),  # June 9th
+                                                                     datetime(2023, 7, 21, 0, 0)],  # July 21
+                                                            '2592': [datetime(2023, 7, 7, 0, 0),  # July 7
+                                                                     datetime(2023, 8, 25, 0, 0)]},  # Aug 25
+            CAMPGROUND_IDS.get(COUGAR_ROCK_FRIENDLY_NAME): {'6611': [datetime(2023, 6, 9, 0, 0),  # June 9
+                                                                     datetime(2023, 7, 21, 0, 0),  # July 21
+                                                                     datetime(2023, 8, 31, 0, 0)],  # Aug 31
+                                                            '8877': [datetime(2023, 7, 28, 0, 0),  # July 28
+                                                                     datetime(2023, 8, 31, 0, 0)]}  # Aug 31
+        }
 
         expected_html = "<html><body><h1>Do you smell the pine cones yet?</h1>" \
                         "<p>Here are some available campsites. Book now!</p>" \
-                        "<h2>" + OHANAPECOSH_FRIENDLY_NAME + "</h2>" \
                         "<ul>" \
                             "<li>Fri, Jun 09 2023 - Sun, Jun 11 2023" \
                                  "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/2591'>2591</a></li>" \
+                                    "<li>" + COUGAR_ROCK_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/6611'>6611</a>" + "</li>" \
+                                    "<li>" + OHANAPECOSH_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/2591'>2591</a>" + "</li>" \
                                  "</ul>" \
-                             "</li>" \
-                             "<li>Fri, Jul 07 2023 - Sun, Jul 09 2023" \
+                            "</li>" \
+                            "<li>Fri, Jul 07 2023 - Sun, Jul 09 2023" \
                                  "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/2592'>2592</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                             "<li>Fri, Jul 21 2023 - Sun, Jul 23 2023" \
-                                 "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/2591'>2591</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                             "<li>Fri, Aug 25 2023 - Sun, Aug 27 2023" \
-                                 "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/2592'>2592</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                         "</ul>" \
-                        "<h2>" + COUGAR_ROCK_FRIENDLY_NAME + "</h2>" \
-                         "<ul>" \
-                             "<li>Fri, Jun 09 2023 - Sun, Jun 11 2023" \
-                                 "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/6611'>6611</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                             "<li>Fri, Jul 21 2023 - Sun, Jul 23 2023" \
-                                 "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/6611'>6611</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                             "<li>Fri, Jul 28 2023 - Sun, Jul 30 2023" \
-                                 "<ul>" \
-                                    "<li><a href='https://www.recreation.gov/camping/campsites/8877'>8877</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                             "<li>Thu, Aug 31 2023 - Sat, Sep 02 2023" \
-                                 "<ul>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/6611'>6611</a></li>" \
-                                     "<li><a href='https://www.recreation.gov/camping/campsites/8877'>8877</a></li>" \
-                                 "</ul>" \
-                             "</li>" \
-                         "</ul>" \
-                         "</body></html>"
-        assert EmailClient(is_test_mode=False).build_html_body(availability) == expected_html
+                                     "<li>" + OHANAPECOSH_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/2592'>2592</a>" + "</li>" \
+                                  "</ul>" \
+                            "</li>" \
+                            "<li>Fri, Jul 21 2023 - Sun, Jul 23 2023" \
+                                "<ul>" \
+                                    "<li>" + COUGAR_ROCK_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/6611'>6611</a>" + "</li>" \
+                                    "<li>" + OHANAPECOSH_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/2591'>2591</a>" + "</li>" \
+                                "</ul>" \
+                            "</li>" \
+                            "<li>Fri, Jul 28 2023 - Sun, Jul 30 2023" \
+                                "<ul>" \
+                                    "<li>" + COUGAR_ROCK_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/8877'>8877</a>" + "</li>" \
+                                "</ul>" \
+                            "</li>" \
+                            "<li>Fri, Aug 25 2023 - Sun, Aug 27 2023" \
+                                "<ul>" \
+                                    "<li>" + OHANAPECOSH_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/2592'>2592</a>" + "</li>" \
+                                "</ul>" \
+                            "</li>" \
+                            "<li>Thu, Aug 31 2023 - Sat, Sep 02 2023" \
+                                  "<ul>" \
+                                     "<li>" + COUGAR_ROCK_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/6611'>6611</a>" + "," + "<a href='https://www.recreation.gov/camping/campsites/8877'>8877</a>" + "</li>" \
+                                  "</ul>" \
+                            "</li>" \
+                         "</ul></body></html>"
 
+
+        assert EmailClient(is_test_mode=False).build_html_body(availability) == expected_html
 
 
 

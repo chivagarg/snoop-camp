@@ -3,13 +3,14 @@ from dateutil import rrule
 from datetime import datetime
 from recreation_gov_client import RecreationGovClient
 from email_client import EmailClient
+from typing import List, Dict, Tuple
 
 from dateutil.relativedelta import relativedelta
 from campground_ids import CAMPGROUND_IDS
 from test_campgrounds_ids import TEST_CAMPGROUND_IDS
 from date_time_utils import get_today
 
-def get_months_to_query(additional_months_to_query_for = 7):
+def get_months_to_query(additional_months_to_query_for: int = 7) -> List[datetime]:
     from_date = get_today()
     # API restriction - we need to query by first of each month we care about
     start = datetime(from_date.year, from_date.month, 1)
@@ -19,7 +20,7 @@ def get_months_to_query(additional_months_to_query_for = 7):
     )
     return months
 
-def get_available_weekend_days(days_available_for_campsite):
+def get_available_weekend_days(days_available_for_campsite: List[str]) -> List[datetime]:
     days_in_datetime = [datetime.strptime(d, '%Y-%m-%dT00:00:00Z') for d in days_available_for_campsite]
     days_in_datetime.sort()
     days_with_available_weekend = []
@@ -31,7 +32,7 @@ def get_available_weekend_days(days_available_for_campsite):
 
     return days_with_available_weekend
 
-def get_two_contiguously_available_days(days_available_for_campsite):
+def get_two_contiguously_available_days(days_available_for_campsite: List[str]) -> List[datetime]:
     days_in_datetime = [datetime.strptime(d, '%Y-%m-%dT00:00:00Z') for d in days_available_for_campsite]
     days_in_datetime.sort()
     days_with_contiguous_availability = []
@@ -41,7 +42,8 @@ def get_two_contiguously_available_days(days_available_for_campsite):
 
     return days_with_contiguous_availability
 
-def fetch_filtered_availabilities_for_campgrounds(campgrounds, months):
+def fetch_filtered_availabilities_for_campgrounds(
+        campgrounds: List[str], months: List[datetime]) -> Tuple[Dict[str, Dict[str, List[datetime]]], Dict[str, Dict[str, List[datetime]]]]:
     weekend_availability_by_campsites = {}
     contiguous_availability_by_campsites = {}
 
@@ -66,7 +68,7 @@ def fetch_filtered_availabilities_for_campgrounds(campgrounds, months):
     return weekend_availability_by_campsites, contiguous_availability_by_campsites
 
 
-def lambda_handler(event, context):
+def lambda_handler(event: Dict, context: Dict) -> Dict:
     is_test_mode = False
     if event and event.get('is_test_mode') == 'True':
         print("This is test mode!")

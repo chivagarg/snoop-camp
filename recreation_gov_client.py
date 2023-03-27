@@ -1,19 +1,20 @@
-
+from typing import Dict, List
 import requests
 import user_agent 
 
 class RecreationGovClient:
-    REC_GOV_BASE_URL = "https://www.recreation.gov"
-    CAMPSITE_RESERVATION_URL = REC_GOV_BASE_URL + '/camping/campsites/{campsite_id}'
-    PARK_AVAILABILITY_ENDPOINT = (
+    REC_GOV_BASE_URL: str = "https://www.recreation.gov"
+    CAMPSITE_RESERVATION_URL: str = REC_GOV_BASE_URL + '/camping/campsites/{campsite_id}'
+    PARK_AVAILABILITY_ENDPOINT: str = (
             REC_GOV_BASE_URL + "/api/camps/availability/campground/{park_id}/month"
     )
-    ALLOWED_CAMPSITE_TYPES = ['STANDARD NONELECTRIC', 'TENT ONLY NONELECTRIC']
+    ALLOWED_CAMPSITE_TYPES: List[str] = ['STANDARD NONELECTRIC', 'TENT ONLY NONELECTRIC']
 
-    headers = {"User-Agent": user_agent.generate_user_agent() }
-    
+    headers: Dict[str, str] = {"User-Agent": user_agent.generate_user_agent()}
+
     @classmethod
-    def get_campground_availability_for_month_range(cls, park_id, months):
+    def get_campground_availability_for_month_range(cls, park_id: str, months: List[str]) -> Dict[str, List[str]]:
+        # API expects format like 2023-06-01T00:00:00.000Z
         # API expects format like 2023-06-01T00:00:00.000Z
         formatted_months = [m.strftime('%Y-%m-%dT00:00:00.000Z') for m in months]
         campsite_to_available_dates = {}
@@ -47,7 +48,7 @@ class RecreationGovClient:
         return campsite_to_available_dates
 
     @classmethod
-    def send_request(cls, url, params):
+    def send_request(cls, url: str, params: Dict[str, str]) -> Dict:
         resp = requests.get(url, params=params, headers=cls.headers)
         if resp.status_code != 200:
             raise RuntimeError(

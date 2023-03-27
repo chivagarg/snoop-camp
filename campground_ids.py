@@ -19,7 +19,6 @@ CAMPGROUND_IDS = {
     'Cascades area - Colonial Creek North': '246855',
     'Cascades area - Colonial Creek South': '255201',
     'Cascades area - Gorge Lake': '10004932',
-    'Cascades area - Harlequin': '10101324',
     'Cascades area - Newhalem Creek': '234060',
     # Mt. Baker
     'Baker area - Beckler River': '232018',

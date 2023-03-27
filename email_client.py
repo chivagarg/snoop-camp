@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import boto3
 from botocore.exceptions import ClientError
 from recreation_gov_client import RecreationGovClient
@@ -6,6 +8,8 @@ from date_time_utils import to_human_readable_dt_format
 
 from campground_ids import CAMPSITE_ID_TO_PARK_DISPLAY_NAME
 from test_campgrounds_ids import TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME
+from typing import Dict, List
+from datetime import datetime
 
 
 class EmailClient:
@@ -41,46 +45,49 @@ class EmailClient:
                   "<p>Here are some available campsites. Book now!</p>"
         return subject
 
-    def build_html_body(cls, availability):
-        body_html = cls.build_headline()
-        for park_id in availability:
-            if cls.is_test_mode:
-                body_html += "<h2>" + TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(park_id) + "</h2>"
-            else:
-                body_html += "<h2>" + CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(park_id) + "</h2>"
-            # let's build a map of available_day -> [ campsite_ids ]
-            available_days_to_campsite = {}
-            campsite_id_to_available_days = availability.get(park_id)
+    def build_html_body(cls, availability: Dict[str, Dict[str, List[datetime]]]) -> str:
+        body_html = "<html><body><h1>Do you smell the pine cones yet?</h1><p>Here are some available campsites. Book now!</p><ul>"
 
-            for campsite_id in campsite_id_to_available_days:
-                for day in campsite_id_to_available_days.get(campsite_id):
-                    available_days_to_campsite.setdefault(day, []).append(campsite_id)
+        # Keep track of available sites for each campground on each date
+        # The available_sites defaultdict tracks the availability of campsites for each campground on each date.
+        # The keys of the outer defaultdict correspond to the dates on which the campsites are available, and the
+        # values are inner defaultdicts.The keys of the inner defaultdict correspond to the campground IDs, and the
+        # values are lists of site IDs that are available on that date.
+        # {
+        #     datetime.datetime(2023, 8, 31, 0, 0): {
+        #         'COUGAR_ROCK': ['6611', '8877'],
+        #         'HUCKLEBERRY_MOUNTAIN': ['1234']
+        #     },
+        #     datetime.datetime(2023, 9, 1, 0, 0): {
+        #         'COUGAR_ROCK': ['6611'],
+        #         'WHITEWATER_FALLS': ['5555', '6666']
+        #     },
+        #     datetime.datetime(2023, 9, 2, 0, 0): {
+        #         'COUGAR_ROCK': ['6611', '8877']
+        #     }
+        # }
 
-            for day in available_days_to_campsite:
-                available_days_to_campsite.get(day).sort()
+        available_sites = defaultdict(lambda: defaultdict(list))
+        for campground_id, site_id_with_dates in availability.items():
+            for site_id, dates in site_id_with_dates.items():
+                for date in dates:
+                    available_sites[date][campground_id].append(site_id)
 
-            available_days_to_campsite_sorted_by_day = dict(sorted(available_days_to_campsite.items()))
+        # Append available sites to the HTML in a grouped format
+        for day in sorted(available_sites.keys()):
+            body_html += f"<li>{to_human_readable_dt_format(day)} - {to_human_readable_dt_format(day + relativedelta(days=2))}<ul>"
+            for campground_id, sites in sorted(available_sites[day].items(),
+                                               key=lambda item: CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(item[0])): # sorted by name
+                sites_str = ",".join(
+                    f"<a href='https://www.recreation.gov/camping/campsites/{site_id}'>{site_id}</a>" for site_id in
+                    sorted(sites))
+                if cls.is_test_mode:
+                    body_html += f"<li>{TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(campground_id)} : {sites_str}</li>"
+                else:
+                    body_html += f"<li>{CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(campground_id)} : {sites_str}</li>"
+            body_html += "</ul></li>"
 
-            body_html += "<ul>"
-
-            for day in available_days_to_campsite_sorted_by_day:
-                body_html += "<li>" + to_human_readable_dt_format(day) + " - " + to_human_readable_dt_format(
-                    day + relativedelta(days=2))
-                body_html += "<ul>"
-                campsite_list = available_days_to_campsite_sorted_by_day.get(day)
-
-                # Limit campsites to 5 per weekend for better display purposes
-                if len(campsite_list) > 5:
-                    campsite_list = campsite_list[0:5]
-
-                for campsite_id in campsite_list:
-                    body_html += "<li>" + cls.get_reservation_link(campsite_id) + "</li>"
-                body_html += "</ul>"
-                body_html += "</li>"
-
-            body_html += "</ul>"
-
-        body_html += "</body></html>"
+        body_html += "</ul></body></html>"
         return body_html
 
     def send_email(cls, weekend_availability, contiguous_availability):
