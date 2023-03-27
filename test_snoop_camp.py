@@ -172,7 +172,7 @@ class TestEmailClient:
                             "</li>" \
                             "<li>Thu, Aug 31 2023 - Sat, Sep 02 2023" \
                                   "<ul>" \
-                                     "<li>" + COUGAR_ROCK_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/6611'>6611</a>" + "," + "<a href='https://www.recreation.gov/camping/campsites/8877'>8877</a>" + "</li>" \
+                                     "<li>" + COUGAR_ROCK_FRIENDLY_NAME + " : " + "<a href='https://www.recreation.gov/camping/campsites/6611'>6611</a>" + ", " + "<a href='https://www.recreation.gov/camping/campsites/8877'>8877</a>" + "</li>" \
                                   "</ul>" \
                             "</li>" \
                          "</ul></body></html>"
