@@ -80,9 +80,9 @@ class EmailClient:
                                                key=lambda item: CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(item[0])): # sorted by name
                 sites_str = ", ".join(
                     f"<a href='https://www.recreation.gov/camping/campsites/{site_id}'>{site_id}</a>" for site_id in
-                    sorted(sites))
+                    sorted(sites[0:5]))
                 if cls.is_test_mode:
-                    body_html += f"<li>{TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(campground_id)} : {sites_str[:5]}</li>"
+                    body_html += f"<li>{TEST_CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(campground_id)} : {sites_str}</li>"
                 else:
                     body_html += f"<li>{CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(campground_id)} : {sites_str}</li>"
             body_html += "</ul></li>"
