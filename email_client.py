@@ -75,7 +75,7 @@ class EmailClient:
 
         # Append available sites to the HTML in a grouped format
         for day in sorted(available_sites.keys()):
-            body_html += f"<li>{to_human_readable_dt_format(day)} - {to_human_readable_dt_format(day + relativedelta(days=2))}<ul>"
+            body_html += f"<li><h3>{to_human_readable_dt_format(day)} - {to_human_readable_dt_format(day + relativedelta(days=2))}</h3><ul>"
             for campground_id, sites in sorted(available_sites[day].items(),
                                                key=lambda item: CAMPSITE_ID_TO_PARK_DISPLAY_NAME.get(item[0])): # sorted by name
                 sites_str = ", ".join(
