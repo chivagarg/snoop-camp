@@ -4,6 +4,7 @@ from datetime import datetime
 from recreation_gov_client import RecreationGovClient
 from email_client import EmailClient
 from typing import List, Dict, Tuple
+import boto3
 
 from dateutil.relativedelta import relativedelta
 from campground_ids import CAMPGROUND_IDS
@@ -73,6 +74,19 @@ def lambda_handler(event: Dict, context: Dict) -> Dict:
     if event and event.get('is_test_mode') == 'True':
         print("This is test mode!")
         is_test_mode = True
+
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/dynamodb.html
+    dynamodb = boto3.resource('dynamodb')
+    # Instantiate a table resource object without actually
+    # creating a DynamoDB table. Note that the attributes of this table
+    # are lazy-loaded: a request is not made nor are the attribute
+    # values populated until the attributes
+    # on the table resource are accessed or its load() method is called.
+    table = dynamodb.Table('snoop-camp-user-preferences')
+    # Print out some data about the table.
+    # This will cause a request to be made to DynamoDB and its attribute
+    # values will be set based on the response.
+    print(table.creation_date_time)
 
     months = get_months_to_query(2 if is_test_mode else 7)
 
