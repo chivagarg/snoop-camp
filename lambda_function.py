@@ -82,7 +82,7 @@ def lambda_handler(event: Dict, context: Dict) -> Dict:
     # are lazy-loaded: a request is not made nor are the attribute
     # values populated until the attributes
     # on the table resource are accessed or its load() method is called.
-    table = dynamodb.Table('snoop-camp-user-preferences')
+    table = dynamodb.Table('snoop-camp-searches')
     # Print out some data about the table.
     # This will cause a request to be made to DynamoDB and its attribute
     # values will be set based on the response.
